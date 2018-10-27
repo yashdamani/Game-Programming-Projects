@@ -1,0 +1,228 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Untitled Document</title>
+</head>
+<body>
+<canvas Id = "canvas" Width= "640" Height="480"></canvas>
+    
+<script>
+
+    var g_canvas                        = document.getElementById("canvas");
+    var g_ctx                           = g_canvas.getContext("2d");
+    var g_canvasWidth                   = 640;
+    var g_canvasHeight                  = 480;
+    var g_frameRate                     = 30;
+    var g_loopInterval                  = g_frameRate/1000;
+    var g_TowerObjs                     = new Array(3);
+    var g_SelectedTowers                = new Array();
+    var g_Number0fMoves                 = 0;
+    
+    f_InitTowers();
+   
+    setInterval(f_GameLoop,g_loopInterval);
+    window.addEventListener("mousedown",f_OnMouseDown);
+    
+    function f_GameLoop()
+    {
+       f_ClearCanvas();
+       f_DrawTowers();
+        
+        g_ctx.font = "20px Arial";
+        g_ctx.fillText("Number of moves: "+g_Number0fMoves,50,50);
+    }
+    
+    function f_ClearCanvas()
+    {
+        g_ctx.clearRect(0,0,g_canvasWidth,g_canvasHeight);
+        g_ctx.strokeRect(0,0,g_canvasWidth,g_canvasHeight);
+    }
+    
+    function f_InitTowers()
+    {
+        var xpos = 60;
+        var ypos = 350;
+        for(var i=0;i<3;i++)
+        {
+            g_TowerObjs[i] = new c_Tower(xpos,ypos,150,150);
+            xpos +=180;
+            
+            g_TowerObjs[i].f_InitBlocks();
+        }
+        
+        g_TowerObjs[1].BlockCount = 0;
+        g_TowerObjs[2].BlockCount = 0;
+        
+        
+    }
+    
+    function f_DrawTowers()
+    {
+        for(var i=0;i<3;i++)
+        {
+            g_TowerObjs[i].f_DrawTowerAndBlocks();
+        }
+    }
+    
+    function f_OnMouseDown(e)
+    {
+       
+        var xpos = e.clientX;
+        var ypos = e.clientY;
+        
+        
+        for(var i=0;i<3;i++)
+        {
+            if(xpos > g_TowerObjs[i].xPos && xpos < (g_TowerObjs[i].xPos+g_TowerObjs[i].width))
+            {
+                if((ypos < g_TowerObjs[i].yPos) && (ypos > (g_TowerObjs[i].yPos-g_TowerObjs[i].height)))
+                {
+                    if(g_SelectedTowers.length==0)
+                    {
+                        if(g_TowerObjs[i].BlockCount == 0) {return;}
+                    }
+                    g_SelectedTowers.push(i);
+                    if(g_SelectedTowers.length>=2)
+                    {
+                        if(g_SelectedTowers[0] == g_SelectedTowers[1])
+                        {
+                            g_SelectedTowers.pop();
+                            g_SelectedTowers.pop();
+                            return;
+                        }
+                        f_ShiftBlock();
+                        g_SelectedTowers.pop();
+                        g_SelectedTowers.pop();
+                    }
+                }
+            }
+        }
+    }
+    
+    var TempVar;
+    var XDiff = 0;
+    
+    function f_ShiftBlock()
+    {
+        TempVar = new c_Rectangle(0,0,0,0,"");
+
+if(g_TowerObjs[g_SelectedTowers[1]].BlockCount>0)
+{
+
+    if( g_TowerObjs[g_SelectedTowers[1]].BlockObjArray[g_TowerObjs[g_SelectedTowers[1]].BlockCount-1].width <  g_TowerObjs[g_SelectedTowers[0]].BlockObjArray[g_TowerObjs[g_SelectedTowers[0]].BlockCount-1].width)
+    {
+        return;
+    }
+}
+        XDiff =g_TowerObjs[g_SelectedTowers[0]].BlockObjArray[g_TowerObjs[g_SelectedTowers[0]].BlockCount-1].xPos - g_TowerObjs[g_SelectedTowers[0]].xPos;
+        
+        g_TowerObjs[g_SelectedTowers[1]].BlockObjArray[g_TowerObjs[g_SelectedTowers[1]].BlockCount].color =  g_TowerObjs[g_SelectedTowers[0]].BlockObjArray[g_TowerObjs[g_SelectedTowers[0]].BlockCount-1].color;
+        g_TowerObjs[g_SelectedTowers[1]].BlockObjArray[g_TowerObjs[g_SelectedTowers[1]].BlockCount].width = g_TowerObjs[g_SelectedTowers[0]].BlockObjArray[g_TowerObjs[g_SelectedTowers[0]].BlockCount-1].width;
+        g_TowerObjs[g_SelectedTowers[1]].BlockObjArray[g_TowerObjs[g_SelectedTowers[1]].BlockCount].xPos = g_TowerObjs[g_SelectedTowers[1]].xPos+XDiff;
+        
+        g_Number0fMoves++;
+        g_TowerObjs[g_SelectedTowers[0]].BlockCount--;
+        g_TowerObjs[g_SelectedTowers[1]].BlockCount++;
+    }
+     
+
+    
+    //-----------------------------------Rectangle Class----------------------------------
+    
+    function c_Tower(l_xPos,l_ypos,l_width,l_height)
+    {
+        
+        this.BlockHeight = 20;
+        this.xPos = l_xPos;
+        this.yPos = l_ypos;
+        this.width = l_width;
+        this.height = l_height;
+        this.BlockXpos = new Array(4);
+        this.BlockYpos = new Array(4);
+        this.BlockObjArray = new Array(4);
+        this.BlockCount = 0;
+        this.ColorArray = ["red","green","blue","orange"];
+        
+        this.f_DrawTowerAndBlocks = f_DrawTowerAndBlocks;
+        this.f_InitBlocks = f_InitBlocks;
+        
+        
+
+    }
+    
+    function f_DrawTowerAndBlocks()
+    {
+       g_ctx.moveTo(this.xPos,this.yPos);
+       g_ctx.lineTo(this.xPos-(this.BlockHeight/2)+(this.width/2),this.yPos);
+       g_ctx.lineTo(this.xPos-(this.BlockHeight/2)+(this.width/2),this.yPos-this.height);
+       g_ctx.lineTo(this.xPos+(this.BlockHeight/2)+(this.width/2),this.yPos-this.height);
+       g_ctx.lineTo(this.xPos+(this.BlockHeight/2)+(this.width/2),this.yPos);
+       g_ctx.lineTo(this.xPos+this.width,this.yPos);
+       g_ctx.lineTo(this.xPos+this.width,this.yPos+this.BlockHeight);
+       g_ctx.lineTo(this.xPos,this.yPos+this.BlockHeight);
+       g_ctx.lineTo(this.xPos,this.yPos);
+       g_ctx.stroke();
+        
+       if(this.BlockCount>0)
+       {
+        for(var i=0;i<this.BlockCount;i++)
+        {
+            this.BlockObjArray[i].f_DrawRectangle();
+        }
+       }
+    }
+    
+    function f_InitBlocks()
+    {
+        var xpos = this.xPos + 10;
+        var ypos = this.yPos - this.BlockHeight - 5  ;
+        var BlockWidth = this.width - 20;
+        
+        for(var i=0;i<4;i++)
+        {
+            this.BlockXpos[i] = xpos;
+            this.BlockYpos[i] = ypos;
+            this.BlockObjArray[i] = new c_Rectangle(xpos,ypos,BlockWidth,this.BlockHeight,this.ColorArray[i]);
+            this.BlockCount++;
+            ypos -= (this.BlockHeight+5);
+            BlockWidth -= 24;
+            xpos +=12;
+
+        }
+    }
+
+    
+   
+    
+    //-----------------------------------Rectangle Class----------------------------------
+    function c_Rectangle(l_xPos,l_ypos,l_width,l_height,l_color)
+    {
+        
+        
+        this.xPos = l_xPos;
+        this.yPos = l_ypos;
+        this.width = l_width;
+        this.height = l_height;
+        this.color = l_color;
+        
+        this.f_DrawRectangle = f_DrawRectangle;
+
+    }
+    
+    
+    function f_DrawRectangle()
+    {
+       g_ctx.fillStyle = this.color;
+       g_ctx.fillRect(this.xPos,this.yPos,this.width,this.height);
+    }
+
+    
+</script>
+    
+
+
+    
+
+</body>
+</html>
