@@ -1,0 +1,594 @@
+<html>
+
+<body>
+    <canvas id="canvas" width="1200" height="400" style="border:1px solid #000000"></canvas>
+
+    <script>
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+
+        var grid_Size = 24;
+        var f_counter = 0;
+        var w_counter = 0;
+        var t_counter = 0;
+        var we_counter = 0;
+        var explosion_Counter = 0;
+        var gravity = 0.5;
+        var leftMovement = false;
+        var rightMovement = false;
+        var upMovement = false;
+        var frame_Counter = 0;
+        var fireGap = 100;
+        var waterGap = 100;
+        var weedGap = 100;
+        var random = 0;
+
+
+        var level_Design_Array = [];
+        var dave_Image_Array = [];
+        var fire_Image_Array = [];
+        var water_Image_Array = [];
+        var trophy_Image_Array = [];
+        var weed_Image_Array = [];
+        var explosion_Image_Array = [];
+        var level_Grid =
+
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 6, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1,
+                1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 2, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 10, 10, 10, 0, 0, 10, 10, 0, 10, 10, 0, 0,
+                1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 10, 0, 10, 0, 10, 0, 0, 0, 10, 0, 10, 0,
+                1, 0, 2, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 2, 2, 2, 2, 2, 0, 1, 0, 0, 1, 1, 0, 8, 1, 0, 0, 0, 0, 1, 0, 0, 1, 10, 10, 10, 0, 10, 0, 0, 0, 10, 10, 0, 0,
+                1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 9, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 10, 0,
+                1, 0, 0, 0, 2, 2, 2, 0, 6, 1, 0, 0, 0, 0, 1, 0, 7, 7, 7, 7, 7, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 10, 0, 0, 0, 0, 10, 10, 0, 10, 0, 10, 0,
+                1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0, 0, 0, 1, 0, 0, 1, 8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                1, 1, 1, 4, 4, 4, 4, 4, 4, 1, 4, 4, 4, 4, 1, 5, 5, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+                11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11 
+            ];
+
+
+        var background_Image = new Image();
+        var brick_Image = new Image();
+        var purple_Brick_Image = new Image();
+        var door_Image = new Image();
+        var dave_Image = new Image();
+        var red_Diamond_Image = new Image();
+        var blue_Diamond_Image = new Image();
+        var sphere_Image = new Image();
+        var border_Image = new Image();
+
+        for (var i = 0; i < 4; i++) {
+            fire_Image_Array[i] = new Image();
+        }
+
+        for (var i = 0; i < 4; i++) {
+            water_Image_Array[i] = new Image();
+        }
+
+        for (var i = 0; i < 7; i++) {
+            dave_Image_Array[i] = new Image();
+        }
+
+        for (var i = 0; i < 5; i++) {
+            trophy_Image_Array[i] = new Image();
+        }
+
+        for (var i = 0; i < 4; i++) {
+            weed_Image_Array[i] = new Image();
+        }
+
+        for (var i = 0; i < 2; i++) {
+            explosion_Image_Array[i] = new Image();
+        }
+
+
+        brick_Image.src = "redTile.png";
+        purple_Brick_Image.src = "platformTile.png";
+        door_Image.src = "door.png";
+        red_Diamond_Image.src = "redDiamonds.png"
+        blue_Diamond_Image.src = "diamonds.png";
+        sphere_Image.src = "sphere.png";
+        border_Image.src = "bottomborder.png";
+
+        fire_Image_Array[0].src = "fire1.png";
+        fire_Image_Array[1].src = "fire2.png";
+        fire_Image_Array[2].src = "fire3.png";
+        fire_Image_Array[3].src = "fire4.png";
+
+        water_Image_Array[0].src = "water1.png";
+        water_Image_Array[1].src = "water2.png";
+        water_Image_Array[2].src = "water3.png";
+        water_Image_Array[3].src = "water4.png";
+
+        dave_Image_Array[0].src = "dave1.png";
+        dave_Image_Array[1].src = "dave2.png";
+        dave_Image_Array[2].src = "dave3.png";
+        dave_Image_Array[3].src = "dave4.png";
+        dave_Image_Array[4].src = "dave5.png";
+        dave_Image_Array[5].src = "dave6.png";
+        dave_Image_Array[6].src = "dave7.png";
+
+        trophy_Image_Array[0].src = "cup1.png";
+        trophy_Image_Array[1].src = "cup2.png";
+        trophy_Image_Array[2].src = "cup3.png";
+        trophy_Image_Array[3].src = "cup4.png";
+        trophy_Image_Array[4].src = "cup5.png";
+
+        weed_Image_Array[0].src = "weed1.png";
+        weed_Image_Array[1].src = "weed2.png";
+        weed_Image_Array[2].src = "weed3.png";
+        weed_Image_Array[3].src = "weed4.png";
+
+        explosion_Image_Array[0].src = "explosion1.png";
+        explosion_Image_Array[1].src = "explosion2.png";
+        
+        
+
+
+
+        document.addEventListener("keyup", keyUpManager);
+        document.addEventListener("keydown", keyDownManager);
+
+
+        function c_level_Design(level_xPos, level_yPos, tileType) {
+            this.level_xPos = level_xPos;
+            this.level_yPos = level_yPos;
+            this.level_grid_Type = tileType;
+            this.render_Object = false;
+
+            this.draw_Level = m_draw_Level;
+            this.render_Level = m_render_Level;
+        }
+
+
+        function m_draw_Level(xPos, yPos, object_name) {
+
+            ctx.drawImage(object_name, xPos, yPos);
+        }
+        
+        
+
+        function m_render_Level() {
+            if (this.level_grid_Type == 1) {
+                this.draw_Level(this.level_xPos, this.level_yPos, brick_Image);
+
+            }
+
+            if (this.level_grid_Type == 2) {
+                this.draw_Level(this.level_xPos, this.level_yPos, purple_Brick_Image);
+            }
+
+            if (this.level_grid_Type == 3) {
+                this.render_Object = true;
+                this.draw_Level(this.level_xPos, this.level_yPos, door_Image);
+                this.render_Object = false;
+            }
+
+            if (this.level_grid_Type == 4) {
+                f_counter++;
+                random =  Math.floor((Math.random() * (3 - 0 + 1)) + 0 );
+                if (f_counter >= 0 && f_counter < fireGap) {
+                    
+                    this.draw_Level(this.level_xPos, this.level_yPos + 14, fire_Image_Array[random]);
+                }
+
+                if (f_counter >= fireGap && f_counter < fireGap * 2) {
+                    this.draw_Level(this.level_xPos, this.level_yPos + 14, fire_Image_Array[random]);
+                }
+
+                if (f_counter >= fireGap * 2 && f_counter < fireGap * 3) {
+                    this.draw_Level(this.level_xPos, this.level_yPos + 14, fire_Image_Array[random]);
+                }
+
+                if (f_counter >= fireGap * 3 && f_counter < fireGap * 4) {
+                    this.draw_Level(this.level_xPos, this.level_yPos + 14, fire_Image_Array[random]);
+                    f_counter = 0;
+                }
+
+            }
+
+            if (this.level_grid_Type == 5) {
+                w_counter++;
+                if (w_counter >= 0 && w_counter < waterGap) {
+                    this.draw_Level(this.level_xPos, this.level_yPos + 13, water_Image_Array[0]);
+                }
+
+                if (w_counter >= waterGap && w_counter < waterGap * 2) {
+
+                    this.draw_Level(this.level_xPos, this.level_yPos + 13, water_Image_Array[1]);
+                }
+
+                if (w_counter >= waterGap * 2 && w_counter < waterGap * 3) {
+                    this.draw_Level(this.level_xPos, this.level_yPos +13, water_Image_Array[2]);
+                }
+
+                if (w_counter >= waterGap * 3 && w_counter < waterGap * 4) {
+                    this.draw_Level(this.level_xPos, this.level_yPos + 13, water_Image_Array[3]);
+                    w_counter = 0;
+                }
+            }
+
+            if (this.level_grid_Type == 6) {
+                this.render_Object = true;
+                if (this.render_Object) {
+                    this.draw_Level(this.level_xPos, this.level_yPos, red_Diamond_Image);
+                    this.render_Object = false;
+                }
+            }
+
+            if (this.level_grid_Type == 7) {
+                this.render_Object = true;
+                if (this.render_Object) {
+                    this.draw_Level(this.level_xPos, this.level_yPos, blue_Diamond_Image);
+                    this.render_Object = false;
+                }
+            }
+
+            if (this.level_grid_Type == 8) {
+                this.render_Object = true;
+                if (this.render_Object)
+                {
+                    this.draw_Level(this.level_xPos, this.level_yPos, sphere_Image);
+                    this.render_Object = false;
+                }
+            }
+
+            if (this.level_grid_Type == 9)
+            {
+                this.render_Object = true;
+                t_counter++;
+                if (t_counter >= 20 && t_counter < 40) {
+                    this.draw_Level(this.level_xPos, this.level_yPos, trophy_Image_Array[0]);
+                }
+
+                if (t_counter >= 40 && t_counter < 60) {
+
+                    this.draw_Level(this.level_xPos, this.level_yPos, trophy_Image_Array[1]);
+                }
+
+                if (t_counter >= 60 && t_counter < 80) {
+                    this.draw_Level(this.level_xPos, this.level_yPos, trophy_Image_Array[2]);
+                }
+
+                if (t_counter >= 80 && t_counter < 100) {
+                    this.draw_Level(this.level_xPos, this.level_yPos, trophy_Image_Array[3]);
+                }
+
+                if (t_counter >= 100 && t_counter < 120) {
+                    this.draw_Level(this.level_xPos, this.level_yPos, trophy_Image_Array[4]);
+                    t_counter = 20;
+                    this.render_Object = false;
+                }
+            }
+
+            if (this.level_grid_Type == 10) {
+                we_counter++;
+                if (we_counter >= 0 && we_counter < weedGap) {
+                    this.draw_Level(this.level_xPos, this.level_yPos, weed_Image_Array[0]);
+                }
+
+                if (we_counter >= weedGap && we_counter < weedGap * 2) {
+
+                    this.draw_Level(this.level_xPos, this.level_yPos, weed_Image_Array[1]);
+                }
+
+                if (we_counter >= weedGap * 2 && we_counter < weedGap * 3) {
+                    this.draw_Level(this.level_xPos, this.level_yPos, weed_Image_Array[2]);
+                }
+
+                if (we_counter >= weedGap * 3 && we_counter < weedGap * 4) {
+                    this.draw_Level(this.level_xPos, this.level_yPos, weed_Image_Array[3]);
+                    we_counter = 0;
+                }
+            }
+            
+            if (this.level_grid_Type == 11) {
+                this.draw_Level(this.level_xPos, this.level_yPos, border_Image);
+            }
+
+
+        }
+
+        function background() {
+            background_Image.src = "background.jpeg";
+            ctx.drawImage(background_Image, 0, 0, canvas.width, canvas.height);
+        }
+
+        function init_Level_Design() {
+            var xCounter = 0;
+            var yCounter = 0;
+
+            for (var i = 0; i < level_Grid.length; i++) {
+                if (xCounter > 49) {
+                    xCounter = 0;
+                    yCounter++;
+                }
+
+                level_Design_Array[i] = new c_level_Design(grid_Size * xCounter, grid_Size * yCounter, level_Grid[i]);
+                xCounter++;
+            }
+            console.log(level_Design_Array.length);
+        }
+
+        function c_Dave_Player(dave_xPos, dave_yPos, speed, dave_Type) {
+            this.dave_xPos = dave_xPos;
+            this.dave_yPos = dave_yPos;
+            this.speed = speed;
+            this.dave_Type = dave_Type;
+            this.rightMovement = false;
+            this.leftMovement = false;
+            this.xVelocity = 0;
+            this.yVelocity = 1;
+            this.dave_render = false;
+
+            this.draw_Dave = m_draw_Dave;
+            this.move_Dave = m_move_Dave;
+        }
+
+        function m_draw_Dave() {
+            ctx.drawImage(this.dave_Type, this.dave_xPos, this.dave_yPos);
+        }
+
+        var dave_Object = new c_Dave_Player(30, 30, 5, dave_Image_Array[0]);
+
+
+        function keyDownManager(e) {
+            if (e.keyCode == 37) {
+                dave_Object.speed = 5;
+                leftMovement = true;
+                rightMovement = false;
+                upMovement = false;
+                touchingGround = true;
+            }
+
+            if (e.keyCode == 39) {
+                dave_Object.speed = 5;
+                rightMovement = true;
+                leftMovement = false;
+                upMovement = false;
+                touchingGround = true;
+            }
+
+            if (e.keyCode == 38 && !upMovement) {
+
+                jumping = true;
+                touchingGround = false;
+                rightMovement = false;
+                leftMovement = false;
+                upMovement = true;
+                dave_Object.yVelocity = 10;
+            }
+        }
+
+
+
+        function keyUpManager(e) {
+            if (e.keyCode == 37) {
+                leftMovement = false;
+                this.dave_Type = dave_Image_Array[6];
+            }
+
+            if (e.keyCode == 39) {
+                rightMovement = false;
+            }
+
+            if(e.keyCode == 38)
+            {
+                if(touchingGround)
+                {
+                    jumping = false;
+                }
+            }
+        }
+
+        function m_move_Dave() {
+            
+            if (leftMovement)
+            {
+                //this.speed = 5;
+                frame_Counter++;
+                this.dave_xPos -= this.speed;
+                this.dave_render = true;
+
+                if(this.dave_render)
+                {
+                    if (frame_Counter == 2) {
+                    this.dave_Type = dave_Image_Array[4];
+                    }
+
+                    if (frame_Counter == 4) {
+                        this.dave_Type = dave_Image_Array[5];
+                    }
+
+                    if (frame_Counter == 6) {
+                        this.dave_Type = dave_Image_Array[6];
+                        frame_Counter = 0;
+                        this.dave_render = false;
+                    }
+                }
+
+
+            }
+
+            if (rightMovement)
+            {
+                //this.speed = 5;
+                frame_Counter++;
+                this.dave_xPos += this.speed;
+                this.dave_render = true;
+                
+                if(this.dave_render)
+                {
+                    if (frame_Counter == 2) {
+                    this.dave_Type = dave_Image_Array[1];
+                    }
+
+                    if (frame_Counter == 4) {
+                        this.dave_Type = dave_Image_Array[2];
+                    }
+
+                    if (frame_Counter == 6) {
+                        this.dave_Type = dave_Image_Array[3];
+                        frame_Counter = 0;
+                        this.dave_render = false;
+                    }
+                }
+            }
+
+            this.yVelocity -= gravity;
+        }
+
+        function collision_Detection() {
+            for (var i = 0; i < level_Grid.length; i++)
+            {
+                if (level_Design_Array[i].level_grid_Type == 1 || level_Design_Array[i].level_grid_Type == 2)
+                {
+                    if (!(((dave_Object.dave_yPos - dave_Object.yVelocity > level_Design_Array[i].level_yPos && dave_Object.dave_yPos - dave_Object.yVelocity >= level_Design_Array[i].level_yPos + grid_Size) &&
+                                (dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity > level_Design_Array[i].level_yPos && dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity > level_Design_Array[i].level_yPos + grid_Size)) ||
+                            ((dave_Object.dave_yPos - dave_Object.yVelocity < level_Design_Array[i].level_yPos && dave_Object.dave_yPos - dave_Object.yVelocity < level_Design_Array[i].level_yPos + grid_Size) &&
+                                (dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity <= level_Design_Array[i].level_yPos && dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity < level_Design_Array[i].level_yPos + grid_Size))))
+                    {
+                        if (!(((dave_Object.dave_xPos > level_Design_Array[i].level_xPos && dave_Object.dave_xPos >= level_Design_Array[i].level_xPos + grid_Size) &&
+                                    (dave_Object.dave_xPos + grid_Size > level_Design_Array[i].level_xPos && dave_Object.dave_xPos + grid_Size > level_Design_Array[i].level_xPos + grid_Size)) ||
+                                ((dave_Object.dave_xPos < level_Design_Array[i].level_xPos && dave_Object.dave_xPos < level_Design_Array[i].level_xPos + grid_Size) &&
+                                    (dave_Object.dave_xPos + grid_Size <= level_Design_Array[i].level_xPos && dave_Object.dave_xPos + grid_Size < level_Design_Array[i].level_xPos + grid_Size))))
+                        {
+                            //dave_Object.yVelocity = 0;
+                            
+                            if( dave_Object.yVelocity > 0)
+                                {
+                                    dave_Object.yVelocity = dave_Object.dave_yPos - (level_Design_Array[i].level_yPos + grid_Size);
+                                }
+                            else if( dave_Object.yVelocity < 0)
+                            {
+                                dave_Object.yVelocity = -(level_Design_Array[i].level_yPos - (dave_Object.dave_yPos + grid_Size));
+                                upMovement = false;
+                                break;
+                            }
+                        }
+                    }
+                
+                    if(rightMovement)
+                        {
+                            if (!(((dave_Object.dave_xPos + dave_Object.speed > level_Design_Array[i].level_xPos && dave_Object.dave_xPos + dave_Object.speed >= level_Design_Array[i].level_xPos + grid_Size) &&
+                                    (dave_Object.dave_xPos + grid_Size + dave_Object.speed > level_Design_Array[i].level_xPos && dave_Object.dave_xPos + grid_Size + dave_Object.speed > level_Design_Array[i].level_xPos + grid_Size)) ||
+                                ((dave_Object.dave_xPos + dave_Object.speed < level_Design_Array[i].level_xPos && dave_Object.dave_xPos + dave_Object.speed < level_Design_Array[i].level_xPos + grid_Size) &&
+                                    (dave_Object.dave_xPos + grid_Size + dave_Object.speed <= level_Design_Array[i].level_xPos && dave_Object.dave_xPos + grid_Size + dave_Object.speed < level_Design_Array[i].level_xPos + grid_Size))))
+                            {
+                                if (!(((dave_Object.dave_yPos > level_Design_Array[i].level_yPos && dave_Object.dave_yPos >= level_Design_Array[i].level_yPos + grid_Size) &&
+                                (dave_Object.dave_yPos + grid_Size > level_Design_Array[i].level_yPos && dave_Object.dave_yPos + grid_Size > level_Design_Array[i].level_yPos + grid_Size)) ||
+                            ((dave_Object.dave_yPos  < level_Design_Array[i].level_yPos && dave_Object.dave_yPos  < level_Design_Array[i].level_yPos + grid_Size) &&
+                                (dave_Object.dave_yPos + grid_Size  <= level_Design_Array[i].level_yPos && dave_Object.dave_yPos + grid_Size  < level_Design_Array[i].level_yPos + grid_Size))))
+                                {
+                                //dave_Object.dave_xPos = level_Design_Array[i].level_xPos - grid_Size;
+                                    dave_Object.speed = level_Design_Array[i].level_xPos - (dave_Object.dave_xPos + grid_Size);
+                                }
+                            }
+                        }
+                    
+                        if(leftMovement)
+                        {
+                            if (!(((dave_Object.dave_xPos - dave_Object.speed > level_Design_Array[i].level_xPos && dave_Object.dave_xPos - dave_Object.speed >= level_Design_Array[i].level_xPos + grid_Size) &&
+                                    (dave_Object.dave_xPos + grid_Size - dave_Object.speed > level_Design_Array[i].level_xPos && dave_Object.dave_xPos + grid_Size - dave_Object.speed > level_Design_Array[i].level_xPos + grid_Size)) ||
+                                ((dave_Object.dave_xPos - dave_Object.speed < level_Design_Array[i].level_xPos && dave_Object.dave_xPos - dave_Object.speed < level_Design_Array[i].level_xPos + grid_Size) &&
+                                    (dave_Object.dave_xPos + grid_Size - dave_Object.speed <= level_Design_Array[i].level_xPos && dave_Object.dave_xPos + grid_Size - dave_Object.speed < level_Design_Array[i].level_xPos + grid_Size))))
+                            {
+                                if (!(((dave_Object.dave_yPos > level_Design_Array[i].level_yPos && dave_Object.dave_yPos >= level_Design_Array[i].level_yPos + grid_Size) &&
+                                (dave_Object.dave_yPos + grid_Size > level_Design_Array[i].level_yPos && dave_Object.dave_yPos + grid_Size > level_Design_Array[i].level_yPos + grid_Size)) ||
+                            ((dave_Object.dave_yPos  < level_Design_Array[i].level_yPos && dave_Object.dave_yPos  < level_Design_Array[i].level_yPos + grid_Size) &&
+                                (dave_Object.dave_yPos + grid_Size  <= level_Design_Array[i].level_yPos && dave_Object.dave_yPos + grid_Size  < level_Design_Array[i].level_yPos + grid_Size))))
+                                {
+                                    dave_Object.speed = dave_Object.dave_xPos - (level_Design_Array[i].level_xPos + grid_Size);
+                                }
+                            }
+                        }
+                    }
+                
+                if (level_Design_Array[i].level_grid_Type == 4 || level_Design_Array[i].level_grid_Type == 5)
+                {
+                    explosion_Counter++;
+                    if (!(((dave_Object.dave_yPos - dave_Object.yVelocity > level_Design_Array[i].level_yPos && dave_Object.dave_yPos - dave_Object.yVelocity >= level_Design_Array[i].level_yPos + grid_Size) &&
+                                (dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity > level_Design_Array[i].level_yPos && dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity > level_Design_Array[i].level_yPos + grid_Size)) ||
+                            ((dave_Object.dave_yPos - dave_Object.yVelocity < level_Design_Array[i].level_yPos && dave_Object.dave_yPos - dave_Object.yVelocity < level_Design_Array[i].level_yPos + grid_Size) &&
+                                (dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity <= level_Design_Array[i].level_yPos && dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity < level_Design_Array[i].level_yPos + grid_Size))))
+                    {
+                        if (!(((dave_Object.dave_xPos > level_Design_Array[i].level_xPos && dave_Object.dave_xPos >= level_Design_Array[i].level_xPos + grid_Size) &&
+                                    (dave_Object.dave_xPos + grid_Size > level_Design_Array[i].level_xPos && dave_Object.dave_xPos + grid_Size > level_Design_Array[i].level_xPos + grid_Size)) ||
+                                ((dave_Object.dave_xPos < level_Design_Array[i].level_xPos && dave_Object.dave_xPos < level_Design_Array[i].level_xPos + grid_Size) &&
+                                    (dave_Object.dave_xPos + grid_Size <= level_Design_Array[i].level_xPos && dave_Object.dave_xPos + grid_Size < level_Design_Array[i].level_xPos + grid_Size))))
+                                    {
+                                        if(explosion_Counter >= 20)
+                                        {
+                                            dave_Object.dave_Type = explosion_Image_Array[0];
+                                        }
+                                        
+                                        if(explosion_Counter >= 100)
+                                        {
+                                            dave_Object.dave_Type = explosion_Image_Array[1];
+                                            explosion_Counter = 0;
+                                            
+                                        }
+                                    }
+                                }
+                    }
+                
+                if (level_Design_Array[i].level_grid_Type == 3 || level_Design_Array[i].level_grid_Type == 6 || level_Design_Array[i].level_grid_Type == 7 || level_Design_Array[i].level_grid_Type == 8 || level_Design_Array[i].level_grid_Type == 9)
+                {
+                    if (!(((dave_Object.dave_yPos - dave_Object.yVelocity > level_Design_Array[i].level_yPos && dave_Object.dave_yPos - dave_Object.yVelocity >= level_Design_Array[i].level_yPos + grid_Size) &&
+                                (dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity > level_Design_Array[i].level_yPos && dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity > level_Design_Array[i].level_yPos + grid_Size)) ||
+                            ((dave_Object.dave_yPos - dave_Object.yVelocity < level_Design_Array[i].level_yPos && dave_Object.dave_yPos - dave_Object.yVelocity < level_Design_Array[i].level_yPos + grid_Size) &&
+                                (dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity <= level_Design_Array[i].level_yPos && dave_Object.dave_yPos + grid_Size - dave_Object.yVelocity < level_Design_Array[i].level_yPos + grid_Size))))
+                    {
+                        if (!(((dave_Object.dave_xPos > level_Design_Array[i].level_xPos && dave_Object.dave_xPos >= level_Design_Array[i].level_xPos + grid_Size) &&
+                                    (dave_Object.dave_xPos + grid_Size > level_Design_Array[i].level_xPos && dave_Object.dave_xPos + grid_Size > level_Design_Array[i].level_xPos + grid_Size)) ||
+                                ((dave_Object.dave_xPos < level_Design_Array[i].level_xPos && dave_Object.dave_xPos < level_Design_Array[i].level_xPos + grid_Size) &&
+                                    (dave_Object.dave_xPos + grid_Size <= level_Design_Array[i].level_xPos && dave_Object.dave_xPos + grid_Size < level_Design_Array[i].level_xPos + grid_Size))))
+                                    {
+                                       // console.log("collision");
+                                        level_Design_Array[i].render_Object = false;
+                                    }
+                        
+                            }
+                    }
+            }
+        }
+        
+                
+           
+                
+              
+
+        function reset_Dave() {
+            this.dave_Type = dave_Image_Array[0];
+            this.dave_xPos = 30;
+            this.dave_yPos = 25;
+            this.dave_Speed = 5;
+        }
+
+        function drawLevel() {
+            for (var i = 0; i < level_Design_Array.length; i++) {
+                level_Design_Array[i].render_Level();
+            }
+        }
+
+
+        init_Level_Design();
+
+        function game_Loop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            background();
+            dave_Object.move_Dave();
+            collision_Detection();
+            dave_Object.dave_yPos -= dave_Object.yVelocity;
+
+            drawLevel();
+
+            dave_Object.draw_Dave();
+        }
+
+        setInterval(game_Loop, 33.33);
+
+    </script>
+</body>
+
+</html>
