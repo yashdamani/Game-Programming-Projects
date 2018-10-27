@@ -1,0 +1,555 @@
+<html>
+    <body>
+        <canvas id="canvas" width="1250" height="600" style="border:1px solid #000000"></canvas>
+            
+        <script>
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext("2d");
+            
+            var grid_Number = 4;
+            var grid_Square_Size = 100;
+            var grid_Object_Array = [];
+            var hover_mouseX = 0;
+            var hover_mouseY = 0;
+            var click_mouseX = 0;
+            var click_mouseY = 0;
+            var get_mouseX = 0;
+            var get_mouseY = 0;
+            var currentSquare_i_Index = 0;
+            var currentSquare_j_Index = 0;
+            var whiteTile_xPos = 0;
+            var whiteTile_yPos = 0;            
+            var tempI = 0;
+            var tempIW = 0;
+            var tempIL = 0;
+            var tempIT = 0;
+            var swaptop = 0;
+            var swapbottom = 0;
+            var swapleft = 0;
+            var swapright = 0;
+            var min = 1;
+            var max = 4;
+            var temp = 0;
+            var randomNumber = 0;
+            var alphabet_ASCII = 65;
+            var char_At;
+            var lineThickness = 2.5
+            var random = 0;
+            var winCount  = 0;
+            var counter = 0;
+            var minute = 0;
+            var seconds = 0;
+            var timeStart = false;
+            var millcount = 0.0;
+            document.addEventListener("mousemove", getHoverPosition);
+            document.addEventListener("mousedown", getClickPosition);
+            document.addEventListener("mousedown", move_Tile);
+            document.addEventListener("mouseup", releaseClick);
+
+           
+            
+            function c_Square(square_xPos, square_yPos, square_Color, square_strokeColor, square_Size, alphabet_Color, letter)
+            {
+                this.square_xPos = square_xPos;
+                this.square_yPos = square_yPos;
+                this.square_strokeColor = square_strokeColor;
+                this.square_Size = square_Size;
+                this.alphabet_Color = alphabet_Color;
+                this.square_Color = square_Color;
+                this.emptyCell = false;       
+                this.letter = letter;
+                this.hovered = false;
+                this.clicked = false;
+                this.i_index = 0;
+                this.j_index = 0;
+                this.fontEnabled = false;
+                this.filledTile = false;
+                this.tileDirectionNumber = 0;
+                
+                
+                this.draw_Square = m_draw_Square;
+            }
+            
+            function m_draw_Square()
+            {
+                if(!this.emptyCell)
+                {
+                    if(this.hovered == true)
+                    {
+                        this.alphabet_Color = "white";
+                    }
+                    else
+                    {
+                        this.alphabet_Color = "black";
+
+                    }
+                    if(this.clicked == true)
+                    {
+                        this.square_Color = "orange";
+                    }
+                    else
+                    {
+                        this.square_Color = "gray";
+
+                    }
+                    
+                }
+               
+                ctx.fillStyle = this.square_Color;
+                ctx.fillRect(this.square_xPos, this.square_yPos, this.square_Size, this.square_Size);
+                ctx.strokeStyle = this.square_strokeColor;
+                ctx.lineWidth = lineThickness;
+                ctx.strokeRect(this.square_xPos, this.square_yPos, this.square_Size, this.square_Size);
+                if(this.fontEnabled)
+                {
+                    ctx.font = "50px Arial";
+                    ctx.fillStyle = this.alphabet_Color;
+                    ctx.fillText(this.letter, this.square_xPos + 35, this.square_yPos + 70);
+                }
+            }
+            
+            function initialize_Grid()
+            {
+                for(var i=0; i<grid_Number; i++)
+                    {
+                        grid_Object_Array[i] = new Array();
+                        
+                        for(var j=0; j<grid_Number; j++)
+                            {
+                                if(i == grid_Number -1 && j== grid_Number -1)
+                                {
+                                    grid_Object_Array[i][j] = new c_Square((3 * grid_Square_Size), (3 * grid_Square_Size), "white", "black", grid_Square_Size);
+                                    
+                                    grid_Object_Array[i][j].emptyCell = true;
+                                    whiteTile_xPos = i;
+                                    whiteTile_yPos = j;
+
+                                        
+                                }
+                                else
+                                {
+                                    
+                                    grid_Object_Array[i][j] = new c_Square((j * grid_Square_Size), (i * grid_Square_Size), "gray", "black", grid_Square_Size, "black", String.fromCharCode(alphabet_ASCII));
+                                    grid_Object_Array[i][j].fontEnabled = true;
+                                    grid_Object_Array[i][j].filledTile = true;
+
+                                    alphabet_ASCII++;
+                                }
+                            }
+                        }
+            }
+            
+            function draw_Grid()
+            {
+                for(var i=0; i<grid_Number; i++)
+                {
+                    for(var j=0; j<grid_Number; j++)
+                        {
+                            grid_Object_Array[i][j].draw_Square();
+                            
+                        }
+                }
+                
+            }
+            
+            function getHoverPosition(e) 
+            {
+                hover_mouseX = e.clientX - canvas.offsetLeft;
+                hover_mouseY = e.clientY - canvas.offsetTop;
+
+                for (i = 0 ; i < grid_Number; i ++)
+                {
+                    for (j = 0 ; j < grid_Number; j ++)
+                    {
+                        if(clickInside(hover_mouseX, hover_mouseY, grid_Object_Array[i][j].square_xPos, grid_Object_Array[i][j].square_yPos, grid_Object_Array[i][j].square_Size ))
+                        {
+                            grid_Object_Array[i][j].hovered = true;
+                            
+
+                        }
+                        else
+                        {
+                            grid_Object_Array[i][j].hovered = false;  
+                            
+                        }
+                    }
+                }
+            }
+            
+            function getClickPosition(e) 
+            {
+                click_mouseX = e.clientX - canvas.offsetLeft;
+                click_mouseY = e.clientY - canvas.offsetTop;
+
+                for (i = 0 ; i < grid_Number; i ++)
+                {
+                    for (j = 0 ; j < grid_Number; j ++)
+                    {
+                        if(clickInside(click_mouseX, click_mouseY, grid_Object_Array[i][j].square_xPos, grid_Object_Array[i][j].square_yPos, grid_Object_Array[i][j].square_Size ))
+                        {
+                            timeStart = true;
+                            grid_Object_Array[i][j].clicked = true;
+                        }
+                       
+                    }
+                }
+            }
+            
+            function releaseClick(event)
+            {
+                for (i = 0 ; i < grid_Number; i ++)
+                {
+                    for (j = 0 ; j < grid_Number; j ++)
+                    {
+                        grid_Object_Array[i][j].clicked = false;
+                    }
+                }
+                        
+            }
+            
+            function clickInside( x , y , xPos , yPos , size )
+            {
+                if(x > xPos && x < xPos + size && y > yPos && y < yPos + size)
+                    {
+                        return true;
+                        
+                    }
+                return false;
+            }
+            
+            
+            function move_Tile(e)
+            {
+                get_mouseX = e.clientX - canvas.offsetLeft;
+                get_mouseY = e.clientY - canvas.offsetTop;
+                
+
+                for (i = 0 ; i < grid_Number; i ++)
+                {
+                    for (j = 0 ; j < grid_Number; j ++)
+                    {
+                        if(grid_Object_Array[i][j].square_Color == "white")
+                            {
+                                whiteTile_xPos = grid_Object_Array[i][j].square_xPos;
+                                whiteTile_yPos = grid_Object_Array[i][j].square_yPos;
+                                //console.log("white xPos " + whiteTile_i_Index + " white yPos " + whiteTile_j_Index);
+                                
+                            }
+                    }
+                }
+                for (i = 0 ; i < grid_Number; i ++)
+                {
+                    for (j = 0 ; j < grid_Number; j ++)
+                    {
+                        if(clickInside(get_mouseX, get_mouseY, grid_Object_Array[i][j].square_xPos, grid_Object_Array[i][j].square_yPos, grid_Object_Array[i][j].square_Size ))
+                        {
+                            
+                            currentSquare_i_Index = i;
+                            currentSquare_j_Index = j
+                           
+                            
+                            if((grid_Object_Array[i][j].square_xPos - grid_Square_Size == whiteTile_xPos) && grid_Object_Array[i][j].square_yPos == whiteTile_yPos)
+                            {
+                                    //console.log("found at left");
+                                
+                                
+                                for (var k = 0 ; k < grid_Number; k ++)
+                                {
+                                    for ( var l = 0 ; l < grid_Number; l ++)
+                                    {
+                                        if(grid_Object_Array[k][l].square_Color == "white")
+                                            {
+                                                tempIL = grid_Object_Array[k][l].square_xPos;
+                                                grid_Object_Array[k][l].square_xPos = grid_Object_Array[i][j].square_xPos;
+                                                grid_Object_Array[i][j].square_xPos = tempIL;
+                                                counter++;
+
+                                            }
+                                    }
+                                }
+                            }
+                                    
+                                
+                            if((grid_Object_Array[i][j].square_xPos + grid_Square_Size == whiteTile_xPos) && grid_Object_Array[i][j].square_yPos == whiteTile_yPos)
+                            {
+                                for (var k = 0 ; k < grid_Number; k ++)
+                                {
+                                    for ( var l = 0 ; l < grid_Number; l ++)
+                                    {
+                                        if(grid_Object_Array[k][l].square_Color == "white")
+                                            {
+                                                tempI = grid_Object_Array[k][l].square_xPos;
+                                                grid_Object_Array[k][l].square_xPos = grid_Object_Array[i][j].square_xPos;
+                                                grid_Object_Array[i][j].square_xPos = tempI;
+                                                counter++;
+                                                
+                                                
+
+                                            }
+                                    }
+                                }
+                            }
+                            
+                            if((grid_Object_Array[i][j].square_yPos - grid_Square_Size == whiteTile_yPos) && (grid_Object_Array[i][j].square_xPos == whiteTile_xPos) )
+                            {
+                                for (var k = 0 ; k < grid_Number; k ++)
+                                {
+                                    for ( var l = 0 ; l < grid_Number; l ++)
+                                    {
+                                        if(grid_Object_Array[k][l].square_Color == "white")
+                                            {
+                                                tempIT = grid_Object_Array[k][l].square_yPos;
+                                                grid_Object_Array[k][l].square_yPos = grid_Object_Array[i][j].square_yPos;
+                                                grid_Object_Array[i][j].square_yPos = tempIT;
+                                                counter++;
+                                            }
+                                    }
+                                }
+                            }
+                            if((grid_Object_Array[i][j].square_yPos + grid_Square_Size == whiteTile_yPos) && (grid_Object_Array[i][j].square_xPos == whiteTile_xPos))
+                            {
+                               //console.log("found at down");
+                                
+                                for (var k = 0 ; k < grid_Number; k ++)
+                                {
+                                    for ( var l = 0 ; l < grid_Number; l ++)
+                                    {
+                                        if(grid_Object_Array[k][l].square_Color == "white")
+                                            {
+                                                tempIW = grid_Object_Array[k][l].square_yPos;
+                                                grid_Object_Array[k][l].square_yPos = grid_Object_Array[i][j].square_yPos;
+                                                grid_Object_Array[i][j].square_yPos = tempIW;
+                                                counter++;
+
+                                            }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            
+            function randomNumberGenerator(Minimum, Maximum)
+            {
+                
+                return Math.floor((Math.random() * (Maximum - Minimum + 1)) + Minimum );
+            }
+            
+            function swapTop(emptyIndexI, emptyIndexJ)
+            {
+                for(var i = 0 ; i < grid_Number ; i ++)
+                {
+                    for(var j = 0 ; j < grid_Number; j ++)
+                    {
+                        if(grid_Object_Array[emptyIndexI][emptyIndexJ].square_yPos - grid_Square_Size== grid_Object_Array[i][j].square_yPos && grid_Object_Array[emptyIndexI][emptyIndexJ].square_xPos == grid_Object_Array[i][j].square_xPos)
+                        {
+                            swaptop = grid_Object_Array[i][j].square_yPos;
+                            grid_Object_Array[i][j].square_yPos = grid_Object_Array[emptyIndexI][emptyIndexJ].square_yPos;
+                            grid_Object_Array[emptyIndexI][emptyIndexJ].square_yPos = swaptop;   
+                        }
+                    }
+                }     
+            }
+            
+            function swapBottom(emptyIndexI, emptyIndexJ)
+            {
+                
+                for(var i = 0 ; i < grid_Number ; i ++)
+                {
+                    for(var j = 0 ; j < grid_Number; j ++)
+                    {
+                        if(grid_Object_Array[emptyIndexI][emptyIndexJ].square_yPos + grid_Square_Size == grid_Object_Array[i][j].square_yPos && grid_Object_Array[emptyIndexI][emptyIndexJ].square_xPos == grid_Object_Array[i][j].square_xPos)
+                        {
+                            swapbottom = grid_Object_Array[i][j].square_yPos;
+                            grid_Object_Array[i][j].square_yPos = grid_Object_Array[emptyIndexI][emptyIndexJ].square_yPos;
+                            grid_Object_Array[emptyIndexI][emptyIndexJ].square_yPos = swapbottom;
+
+                        }
+                    }
+                }
+            }
+
+            function swapRight(emptyIndexI, emptyIndexJ)
+            {
+                for(var i = 0 ; i < grid_Number ; i ++)
+                {
+                    for(var j = 0 ; j < grid_Number; j ++)
+                    {
+
+                        if(grid_Object_Array[emptyIndexI][emptyIndexJ].square_xPos + grid_Square_Size== grid_Object_Array[i][j].square_xPos && grid_Object_Array[emptyIndexI][emptyIndexJ].square_yPos == grid_Object_Array[i][j].square_yPos)
+                        {
+                            swapright = grid_Object_Array[i][j].square_xPos;
+                            grid_Object_Array[i][j].square_xPos = grid_Object_Array[emptyIndexI][emptyIndexJ].square_xPos;
+                            grid_Object_Array[emptyIndexI][emptyIndexJ].square_xPos = swapright;
+                        }
+                    }
+                }
+            }
+            
+            function swapLeft(emptyIndexI, emptyIndexJ)
+            {
+                for(var i = 0 ; i < grid_Number ; i ++)
+                {
+                    for(var j = 0 ; j < grid_Number; j ++)
+                    {
+                        if(grid_Object_Array[emptyIndexI][emptyIndexJ].square_xPos - grid_Square_Size == grid_Object_Array[i][j].square_xPos && grid_Object_Array[emptyIndexI][emptyIndexJ].square_yPos == grid_Object_Array[i][j].square_yPos)
+                        {
+                            swapleft = grid_Object_Array[i][j].square_xPos;
+                            grid_Object_Array[i][j].square_xPos = grid_Object_Array[emptyIndexI][emptyIndexJ].square_xPos;
+                            grid_Object_Array[emptyIndexI][emptyIndexJ].square_xPos = swapleft;
+                        }
+                    }
+                }
+            }
+            
+            function RandomShuffle()
+            {
+                for(var m = 0 ; m < 500; m++)
+                {
+                    random = randomNumberGenerator(min, max);
+                    for(var n = 0 ; n < grid_Number; n ++)
+                    {
+                        for (var l = 0 ; l < grid_Number ; l ++)
+                        {
+                            if( random == 1 && n > 0 && grid_Object_Array[n][l].emptyCell == true )
+                            {
+                                swapTop(n,l);
+                                
+                            }
+                            if( random == 2 && l < grid_Number && grid_Object_Array[n][l].emptyCell == true )
+                            {
+                                swapRight(n,l);
+                            }
+                            if( random == 3 && n < grid_Number && grid_Object_Array[n][l].emptyCell == true )
+                            {
+                                swapBottom(n,l);
+                            }
+                            if( random == 4 && l > 0 && grid_Object_Array[n][l].emptyCell == true )
+                            {
+                                swapLeft(n,l);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            function winningStreak()
+            {
+                for( var i = 0; i< grid_Number; i++)
+                {
+                    for(var j = 0; j< grid_Number; j++)
+                    {
+                        if( grid_Object_Array[i][j].square_xPos == j * grid_Square_Size && grid_Object_Array[i][j].square_yPos == i * grid_Square_Size )
+                        {
+                            winCount ++;
+                            
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+                if(winCount == 16)
+                {
+                    winBox();
+                    
+                }
+            }
+            
+            function Timer()
+            {
+                ctx.font  = "50px Copperplate";
+                ctx.fillStyle = "red";
+                ctx.fillText(minute,150,580);
+                ctx.fillText(seconds, 220, 580);
+                ctx.fillText(":", 192, 575);
+                ctx.font = "25px Impact";
+                ctx.fillText("Timer", 175, 530);
+
+                if(timeStart)
+                {
+                    millcount++;
+                    if(millcount == 30)
+                        {
+                            seconds ++;
+                            millcount = 0;
+                        }
+                    if(seconds == 60)
+                        {
+                            minute++;
+                            seconds = 0;
+                        }
+                }
+                
+            }
+            
+            function movesCounter()
+            {
+                ctx.font  = "50px Copperplate";
+                ctx.fillStyle = "green";
+                ctx.fillText(counter/2,38,580);
+                ctx.font = "25px Impact";
+                ctx.fillText("Moves", 35, 530);
+                
+            }
+            function winBox()
+            {
+                ctx.fillStyle = "orange";
+                ctx.fillRect(100, 150, 200, 100);
+                ctx.font  = "20px Arial";
+                ctx.fillStyle = "black";
+                ctx.fillText("You Won!", 150, 210);
+                grid_Object_Array[i][j].clicked = false;
+                grid_Object_Array[i][j].hovered = false;
+                
+            }
+            initialize_Grid();
+            RandomShuffle();
+            
+    
+            function gameLoop()
+            {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                draw_Grid();
+                winningStreak();
+                movesCounter();
+                Timer();
+            }
+            
+            
+            setInterval(gameLoop, 33.33);
+        </script>
+    </body>
+</html>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+          
